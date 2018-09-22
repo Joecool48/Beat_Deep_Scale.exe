@@ -11,7 +11,7 @@ first_line = True # DO NOT REMOVE
 # global variables or other functions can go here
 stances = ["Rock", "Paper", "Scissors"]
 
-AUTO_RETREAT_HEALTH = 50
+AUTO_RETREAT_HEALTH = 70
 MONSTER_HEALTH_WEIGHT = .7
 MONSTER_ATTACK_WEIGHT = 1
 PLAYER_ROCK_REWARD_WEIGHT = 20
@@ -36,7 +36,7 @@ def max_score_monster(nodes):
     max_score = -10000000
     max_monster = None
     for node in nodes:
-        if game.has_monster(node) and game.get_self().location != node and game.get_monster(node).health > 0:
+        if game.has_monster(node) and game.get_self().location != node and game.get_monster(node).health > 0 and node != 0:
             monster = game.get_monster(node)
             score = monster_score(monster)
             if score > max_score and node != 0:
@@ -51,7 +51,9 @@ def attack_decision(node):
     destination_node = game.get_self().location
     max_score = -1000000
     max_location = 0
-    if game.get_self().health < AUTO_RETREAT_HEALTH and game.get_monster(0).health > 0:
+    if game.get_self().location == 0 and game.get_monster(0).respawn_counter < 7:
+        destination_node = 0
+    elif game.get_self().health < AUTO_RETREAT_HEALTH and game.get_monster(0).respawn_counter < 10:
         game.log("Retreat")
         shortest = game.shortest_paths(game.get_self().location, 0)
         max_location = shortest[0][0]
@@ -70,6 +72,8 @@ def attack_decision(node):
     else:
         game.log("No retreat or monster on space")
         nodes = game.get_adjacent_nodes(game.get_self().location)
+        all_nodes = game.get_all_monsters()
+        
         monst = max_score_monster(nodes)
         if monst != None:
             destination_node = monst.location
@@ -77,7 +81,6 @@ def attack_decision(node):
             chosen_stance = get_winning_stance(monst.stance)
         else:
             game.log("choose a node")
-            all_nodes = game.get_all_monsters()
             if len(all_nodes) == 0:
                 destination_node = 0
             destination_node = all_nodes[0].location
