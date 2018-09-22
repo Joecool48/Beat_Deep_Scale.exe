@@ -11,6 +11,14 @@ first_line = True # DO NOT REMOVE
 # global variables or other functions can go here
 stances = ["Rock", "Paper", "Scissors"]
 
+AUTO_RETREAT_HEALTH = 50
+MONSTER_HEALTH_WEIGHT = .7
+MONSTER_ATTACK_WEIGHT = 1
+PLAYER_ROCK_REWARD_WEIGHT = 20
+PLAYER_PAPER_REWARD_WEIGHT = 20
+PLAYER_SCISSORS_REWARD_WEIGHT = 20
+PLAYER_SPEED_REWARD_WEIGHT = 20
+PLAYER_HEALTH_REWARD_WEIGHT = 30
 def get_winning_stance(stance):
     if stance == "Rock":
         return "Paper"
@@ -28,19 +36,63 @@ for line in fileinput.input():
         continue
     game.update(json.loads(line))
 # DO NOT CHANGE ABOVE ---------------------------
+
 def monster_score (monster):
-    score = 100
+    score = 0
     score -= monster.health * MONSTER_HEALTH_WEIGHT
     score -= monster.attack * MONSTER_ATTACK_WEIGHT
-    if monster.death_effects == MONSTER_DEATH_REWARD_PRIORITY:
-        score += MONSTER_REWARD_WEIGHT
+    score += monster.death_effects.rock * PLAYER_ROCK_REWARD_WEIGHT
+    score += monster.death_effects.paper * PLAYER_PAPER_REWARD_WEIGHT
+    score += monster.death_effects.scissors * PLAYER_SCISSORS_REWARD_WEIGHT
+    score += monster.death_effects.health * PLAYER_HEALTH_REWARD_WEIGHT
+    score += monster.death_effects.speed * PLAYER_SPEED_REWARD_WEIGHT
     return score
+def max_score_monster(nodes):
+    if len(nodes) == 0:
+        return None
+    max_score = -10000000
+    max_monster = None
+    for node in nodes:
+        if game.has_monster(node):
+            monster = game.get_monster(node)
+            score = monster_score(monster)
+            if score > max_score:
+                max_score = score
+                max_monster = monster
 
+    return max_monster
+
+# Healing monster spawns at turn 40
 def attack_decision(node):
-    monsters = game.nearest_monsters(game.get_self(), 1)
-    adjacent_nodes = game.get_adjacent_nodes(game.get_self().location)
+    if len(nodes) == 0:
+        return
+    chosen_stance = stances[random.randint(0,2)]
+    destination_node = game.get_self().location
+    max_score = -1000000
+    max_location = 0
+    if game.get_self().health < AUTO_RETREAT_HEALTH:
+        shortest = game.shortest_paths(game.get_self().location, 0)
+        max_location = shortest[0][0]
+        for path in shortest:
+            score = monster_score(game.get_monster(path[0]))
+            if not game.has_monster(path[0]):
+                destination_node = path[0]
+            else if score > max_score:
+                max_score = score
+                max_location = path[0]
+        destination_node = max_location
+    elif game.has_monster(game.get_self().location):
+        chosen_stance = get_winning_stance(game.get_monster(game.get_self().location).stance)
+    else:
+        nodes = game.get_adjacent_nodes(game.get_self().location)
+        monst = max_score_monster(nodes)
+        if monst != None:
+            destination_node = monst.location
+            chosen_stance = get_winning_stance(monst.stance)
+        else:
+            destination_node = nodes[random.randint(0, len(nodes) - 1)]
 
-    # code in this block will be executed each turn of the game
+    return (chosen_stance, destination_node)
 
     me = game.get_self()
 
