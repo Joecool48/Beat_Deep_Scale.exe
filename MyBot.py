@@ -77,7 +77,7 @@ def attack_decision(node):
             score = monster_score(game.get_monster(path[0]))
             if not game.has_monster(path[0]):
                 destination_node = path[0]
-            else if score > max_score:
+            elif score > max_score:
                 max_score = score
                 max_location = path[0]
         destination_node = max_location
@@ -94,27 +94,28 @@ def attack_decision(node):
 
     return (chosen_stance, destination_node)
 
-    me = game.get_self()
-
-    if me.location == me.destination: # check if we have moved this turn
-        # get all living monsters closest to me
-        monsters = game.nearest_monsters(me.location, 1)
-
-        # choose a monster to move to at random
-        monster_to_move_to = monsters[random.randint(0, len(monsters)-1)]
-
-        # get the set of shortest paths to that monster
-        paths = game.shortest_paths(me.location, monster_to_move_to.location)
-        destination_node = paths[random.randint(0, len(paths)-1)][0]
-    else:
-        destination_node = me.destination
-
-    if game.has_monster(me.location):
-        # if there's a monster at my location, choose the stance that damages that monster
-        chosen_stance = get_winning_stance(game.get_monster(me.location).stance)
-    else:
-        # otherwise, pick a random stance
-        chosen_stance = stances[random.randint(0, 2)]
-
-    # submit your decision for the turn (This function should be called exactly once per turn)
-    game.submit_decision(destination_node, chosen_stance)
+    # me = game.get_self()
+    #
+    # if me.location == me.destination: # check if we have moved this turn
+    #     # get all living monsters closest to me
+    #     monsters = game.nearest_monsters(me.location, 1)
+    #
+    #     # choose a monster to move to at random
+    #     monster_to_move_to = monsters[random.randint(0, len(monsters)-1)]
+    #
+    #     # get the set of shortest paths to that monster
+    #     paths = game.shortest_paths(me.location, monster_to_move_to.location)
+    #     destination_node = paths[random.randint(0, len(paths)-1)][0]
+    # else:
+    #     destination_node = me.destination
+    #
+    # if game.has_monster(me.location):
+    #     # if there's a monster at my location, choose the stance that damages that monster
+    #     chosen_stance = get_winning_stance(game.get_monster(me.location).stance)
+    # else:
+    #     # otherwise, pick a random stance
+    #     chosen_stance = stances[random.randint(0, 2)]
+    #
+    # # submit your decision for the turn (This function should be called exactly once per turn)
+    decision = attack_decision(game.get_self().location)
+    game.submit_decision(decision[0], decision[1])
