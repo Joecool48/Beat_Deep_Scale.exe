@@ -7,6 +7,14 @@ import json
 import random
 
 first_line = True # DO NOT REMOVE
+# Global variables
+RETREAT_HEALTH = 50
+MONSTER_DEATH_REWARD_PRIORITY = DeathEffects.health
+MONSTER_HEALTH_WEIGHT = .7
+MONSTER_ATTACK_WEIGHT = 1
+MONSTER_REWARD_WEIGHT = 20
+
+#Function return errors
 
 # global variables or other functions can go here
 stances = ["Rock", "Paper", "Scissors"]
@@ -28,7 +36,50 @@ for line in fileinput.input():
         continue
     game.update(json.loads(line))
 # DO NOT CHANGE ABOVE ---------------------------
-
+# Function that calculates a monster's desireablitiy score for attacking
+def monster_score (monster):
+    score = 100
+    score -= monster.health * MONSTER_HEALTH_WEIGHT
+    score -= monster.attack * MONSTER_ATTACK_WEIGHT
+    if monster.death_effects == MONSTER_DEATH_REWARD_PRIORITY:
+        score += MONSTER_REWARD_WEIGHT
+    return score
+# From a list of monsters return the most ideal one to attacks
+def ideal_monster_location(node):
+    monsters = game.nearest_monsters(node, 1)
+    if len(monsters) == 0:
+        return game.shortest_paths(game.get_self().location, 0)[0]
+    max_priority = monster_score(monsters[0])
+    max_priority_location = monsters[0].location
+    for monster in monsters:
+        priority = monster_score(monster)
+        if priority > max_priority:
+            max_priority = priority
+            max_priority_location = monster.location
+    return max_priority_location
+def should_retreat():
+    if game.get_self().health < RETREAT_HEALTH:
+        monsters = game.get_all_monsters()
+        nodes = game.get_adjacent_nodes()
+        if len(monsters) == 0:
+            game.get_self().destination = game.get_self().shortest_paths(game.get_self().location, 0)
+            return True
+        min_monster_health = monsters[0]
+        min_monster_health_node = -1
+        priority_monsters = []
+        for monster in monsters:
+            for node in nodes:
+                if monster.location != node:
+                    game.get_self().destination = node
+                    break
+                if monster.health < min_monster_health:
+                    min_monster_health = monster.health
+                    min_monster_health_node = node
+        if min_monster_health_node != -1:
+            game.get_self().destination = min_monster_health_node
+        else game.get_self().destination = nodes[0];
+        return True
+    return False
     # code in this block will be executed each turn of the game
 
     me = game.get_self()
