@@ -90,6 +90,18 @@ def attack_decision(node):
             game.log("Dest node = " + str(destination_node))
     return (chosen_stance, destination_node)
 
+def fighting():
+    rockWeight = me.rock
+    paperWeight = me.paper
+    scissorsWeight = me.scissors
+    num = randInt(0, rockWeight+paperWeight+scissorsWeight)
+    if num > 0 and num < rockWeight:
+        return "Rock"
+    elif num <paperWeight:
+        return "Paper"
+    else:
+        return "scissors"
+
 def get_winning_stance(stance):
     if stance == "Rock":
         return "Paper"
@@ -110,31 +122,36 @@ for line in fileinput.input():
     # code in this block will be executed each turn of the game
 
     me = game.get_self()
-    if (((loop_number == len(loop_list) - 1) and (loop_index == len(loop_list[loop_number]) - 1)) and (isJ == False)):
-        isJ = True
-    if (isJ == False):
-        if game.has_monster(me.location) and game.get_monster(me.location).health > 0:
-            # if there's a living monster at my location, choose the stance that damages that monster, don't change location
-            chosen_stance = get_winning_stance(game.get_monster(me.location).stance)
-            destination_node = me.location
-        else:
-            # otherwise, go to the next location in the loop
-            if (me.location == 0 and game.get_monster(0).respawn_counter <=12):
-                pass
+    if (game.turn_number >= 300):
+        game.submit_decision(me.location, fighting())
+    else:
+        if (((loop_number == len(loop_list) - 1) and (loop_index == len(loop_list[loop_number]) - 1)) and (isJ == False)):
+            isJ = True
+        if (isJ == False):
+            if game.has_monster(me.location) and game.get_monster(me.location).health > 0:
+                # if there's a living monster at my location, choose the stance that damages that monster, don't change location
+                chosen_stance = get_winning_stance(game.get_monster(me.location).stance)
+                destination_node = me.location
             else:
-                if (loop_list[loop_number][loop_index] == me.location):    #only change my target if I moved to the previous target
-                    loop_index = loop_index + 1
-                if (loop_index > len(loop_list[loop_number]) - 1):
-                    loop_index = 0
-                    loop_number = loop_number + 1
-            chosen_stance = stances[random.randint(0, 2)]
-        if (loop_number > len(loop_list) - 1):
-            loop_number = len(loop_list) - 1
-        destination_node = loop_list[loop_number][loop_index];
-        game.submit_decision(destination_node, chosen_stance)
-    if (isJ == True):
-        decision = attack_decision(game.get_self().location)
-        game.submit_decision(decision[1], decision[0])
+                # otherwise, go to the next location in the loop
+                if (me.location == 0 and game.get_monster(0).respawn_counter <=16):
+                    destination_node = me.location
+                elif (me.location == 3 and game.get_monster(3).respawn_counter <= 8 and loop_number < 2):
+                    destination_node = me.location
+                else:
+                    if (loop_list[loop_number][loop_index] == me.location):    #only change my target if I moved to the previous target
+                        loop_index = loop_index + 1
+                    if (loop_index > len(loop_list[loop_number]) - 1):
+                        loop_index = 0
+                        loop_number = loop_number + 1
+                chosen_stance = stances[random.randint(0, 2)]
+            if (loop_number > len(loop_list) - 1):
+                loop_number = len(loop_list) - 1
+            destination_node = loop_list[loop_number][loop_index];
+            game.submit_decision(destination_node, chosen_stance)
+        if (isJ == True):
+            decision = attack_decision(game.get_self().location)
+            game.submit_decision(decision[1], decision[0])
     #game.log("Turn: {0},\tMyNode: {1},\tloopNumber: {2},\tMonsterHealth: {3},\tDestinationNode: {4},\tloopIndex: {5}".format(game.turn_number, me.location, loop_number, game.get_monster(9).health, destination_node, loop_index))
 
 
