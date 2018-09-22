@@ -1,4 +1,4 @@
-Working Bot:
+Current Bot:
 /c/users/bfurm/documents/GitHub/python/Mechmania2018/Beat_Deep_Scale.exe/python-starter
 
 Starter Bot:
