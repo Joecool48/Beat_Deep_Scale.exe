@@ -28,7 +28,10 @@ for line in fileinput.input():
         continue
     game.update(json.loads(line))
 # DO NOT CHANGE ABOVE ---------------------------
-
+def attack_decision(node):
+    monsters = game.nearest_monsters(game.get_self(), 1)
+    adjacent_nodes = game.get_adjacent_nodes(game.get_self().location)
+    
     # code in this block will be executed each turn of the game
 
     me = game.get_self()
