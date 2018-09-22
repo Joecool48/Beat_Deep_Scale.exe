@@ -28,10 +28,18 @@ for line in fileinput.input():
         continue
     game.update(json.loads(line))
 # DO NOT CHANGE ABOVE ---------------------------
+def monster_score (monster):
+    score = 100
+    score -= monster.health * MONSTER_HEALTH_WEIGHT
+    score -= monster.attack * MONSTER_ATTACK_WEIGHT
+    if monster.death_effects == MONSTER_DEATH_REWARD_PRIORITY:
+        score += MONSTER_REWARD_WEIGHT
+    return score
+
 def attack_decision(node):
     monsters = game.nearest_monsters(game.get_self(), 1)
     adjacent_nodes = game.get_adjacent_nodes(game.get_self().location)
-    
+
     # code in this block will be executed each turn of the game
 
     me = game.get_self()
