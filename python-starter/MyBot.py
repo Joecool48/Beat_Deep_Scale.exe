@@ -12,7 +12,7 @@ first_line = True # DO NOT REMOVE
 stances = ["Rock", "Paper", "Scissors"]
 loop_number = 0
 loop_index = 0;
-loop_list = [[0,1,3,1],[0,1,0,6],[0,1,3,1],[0,1,3,1,0,6],[0,1,3,1,0,10,16,15,16,10]]
+loop_list = [[0,1,3,1],[0,1,0,6],[0,1,3,1],[0,1,0,6,0,10],[0,1,3,1,0,10,16,15,16,10],[0,1,3,1,0,10,16,15,16,10]]
 AUTO_RETREAT_HEALTH = 70
 MONSTER_HEALTH_WEIGHT = .7
 MONSTER_ATTACK_WEIGHT = 1
@@ -20,7 +20,7 @@ PLAYER_ROCK_REWARD_WEIGHT = 20
 PLAYER_PAPER_REWARD_WEIGHT = 20
 PLAYER_SCISSORS_REWARD_WEIGHT = 20
 PLAYER_SPEED_REWARD_WEIGHT = 20
-PLAYER_HEALTH_REWARD_WEIGHT = 50
+PLAYER_HEALTH_REWARD_WEIGHT = 60
 isJ = False
 isEarly = True
 
@@ -57,7 +57,7 @@ def attack_decision(node):
     max_location = 0
     if game.get_self().location == 0 and game.get_monster(0).respawn_counter < 7:
         destination_node = 0
-    elif game.get_self().health < AUTO_RETREAT_HEALTH and game.get_monster(0).respawn_counter < 25:
+    elif game.get_self().health < AUTO_RETREAT_HEALTH and game.get_monster(0).respawn_counter < 35:
         game.log("Retreat")
         shortest = game.shortest_paths(game.get_self().location, 0)
         max_location = shortest[0][0]
@@ -95,7 +95,7 @@ def fighting():
     rockWeight = me.rock
     paperWeight = me.paper
     scissorsWeight = me.scissors
-    num = randint(0, rockWeight+paperWeight+scissorsWeight)
+    num = random.randint(0, rockWeight+paperWeight+scissorsWeight)
     if num > 0 and num < rockWeight:
         return "Rock"
     elif num <paperWeight+rockWeight:
@@ -128,6 +128,10 @@ for line in fileinput.input():
     else:
         if (((loop_number == len(loop_list) - 1) and (loop_index == len(loop_list[loop_number]) - 1)) and (isJ == False)):
             isJ = True
+            game.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            game.log(game.turn_number)
+            game.log(loop_number)
+            game.log(loop_index)
         if (isJ == False):
             if (game.turn_number < 7):
                 game.submit_decision(1,"Paper")
