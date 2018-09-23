@@ -20,8 +20,9 @@ PLAYER_ROCK_REWARD_WEIGHT = 20
 PLAYER_PAPER_REWARD_WEIGHT = 20
 PLAYER_SCISSORS_REWARD_WEIGHT = 20
 PLAYER_SPEED_REWARD_WEIGHT = 20
-PLAYER_HEALTH_REWARD_WEIGHT = 30
+PLAYER_HEALTH_REWARD_WEIGHT = 50
 isJ = False
+isEarly = True
 
 def monster_score (monster):
     score = 0
@@ -56,7 +57,7 @@ def attack_decision(node):
     max_location = 0
     if game.get_self().location == 0 and game.get_monster(0).respawn_counter < 7:
         destination_node = 0
-    elif game.get_self().health < AUTO_RETREAT_HEALTH and game.get_monster(0).respawn_counter < 10:
+    elif game.get_self().health < AUTO_RETREAT_HEALTH and game.get_monster(0).respawn_counter < 25:
         game.log("Retreat")
         shortest = game.shortest_paths(game.get_self().location, 0)
         max_location = shortest[0][0]
@@ -94,10 +95,10 @@ def fighting():
     rockWeight = me.rock
     paperWeight = me.paper
     scissorsWeight = me.scissors
-    num = randInt(0, rockWeight+paperWeight+scissorsWeight)
+    num = randint(0, rockWeight+paperWeight+scissorsWeight)
     if num > 0 and num < rockWeight:
         return "Rock"
-    elif num <paperWeight:
+    elif num <paperWeight+rockWeight:
         return "Paper"
     else:
         return "scissors"
@@ -128,12 +129,17 @@ for line in fileinput.input():
         if (((loop_number == len(loop_list) - 1) and (loop_index == len(loop_list[loop_number]) - 1)) and (isJ == False)):
             isJ = True
         if (isJ == False):
-            if game.has_monster(me.location) and game.get_monster(me.location).health > 0:
+            if (game.turn_number < 7):
+                game.submit_decision(1,"Paper")
+                isEarly = True
+            elif game.has_monster(me.location) and game.get_monster(me.location).health > 0:
                 # if there's a living monster at my location, choose the stance that damages that monster, don't change location
+                isEarly = False
                 chosen_stance = get_winning_stance(game.get_monster(me.location).stance)
                 destination_node = me.location
             else:
                 # otherwise, go to the next location in the loop
+                isEarly = False
                 if (me.location == 0 and game.get_monster(0).respawn_counter <=16):
                     destination_node = me.location
                 elif (me.location == 3 and game.get_monster(3).respawn_counter <= 8 and loop_number < 2):
@@ -147,8 +153,9 @@ for line in fileinput.input():
                 chosen_stance = stances[random.randint(0, 2)]
             if (loop_number > len(loop_list) - 1):
                 loop_number = len(loop_list) - 1
-            destination_node = loop_list[loop_number][loop_index];
-            game.submit_decision(destination_node, chosen_stance)
+            if isEarly == False:
+                destination_node = loop_list[loop_number][loop_index];
+                game.submit_decision(destination_node, chosen_stance)
         if (isJ == True):
             decision = attack_decision(game.get_self().location)
             game.submit_decision(decision[1], decision[0])
